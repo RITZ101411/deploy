@@ -1,4 +1,5 @@
-use axum::{Router, http::StatusCode, routing::get};
+mod app;
+mod routes;
 
 #[tokio::main]
 async fn main() {
@@ -9,17 +10,13 @@ async fn main() {
         )
         .init();
 
-    let app = Router::new().route("/health", get(health));
+    let app = app::create();
 
     let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
         .await
         .unwrap();
 
-    tracing::debug!("listening on {}", listener.local_addr().unwrap());
+    tracing::info!("listening on {}", listener.local_addr().unwrap());
 
     axum::serve(listener, app).await.unwrap();
-}
-
-async fn health() -> StatusCode {
-    StatusCode::OK
 }
