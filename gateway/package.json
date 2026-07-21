@@ -1,0 +1,20 @@
+{
+  "name": "gateway",
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite-node src/index.ts",
+    "build": "vite build",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@hono/node-server": "^1.14.2",
+    "hono": "^4.8.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "vite-node": "^6.0.0"
+  }
+}
