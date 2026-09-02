@@ -1,0 +1,74 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: controller
+  namespace: deploy-system
+---
+# controller が K8s を操作するための権限
+# 最小権限: ユーザーアプリの Deployment/Service を管理できる
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: deploy-controller
+rules:
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["services", "pods"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: deploy-controller
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: deploy-controller
+subjects:
+  - kind: ServiceAccount
+    name: controller
+    namespace: deploy-system
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: controller
+  namespace: deploy-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: controller
+  template:
+    metadata:
+      labels:
+        app: controller
+    spec:
+      serviceAccountName: controller
+      containers:
+        - name: controller
+          image: ghcr.io/ritz101411/deploy-controller:latest
+          ports:
+            - containerPort: 3000
+          env:
+            - name: RUST_LOG
+              value: "controller=info"
+---
+# ClusterIP: クラスタ内部からのみ到達可能（外部公開しない）
+apiVersion: v1
+kind: Service
+metadata:
+  name: controller
+  namespace: deploy-system
+spec:
+  type: ClusterIP
+  selector:
+    app: controller
+  ports:
+    - port: 3000
+      targetPort: 3000
