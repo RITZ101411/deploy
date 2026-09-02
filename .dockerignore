@@ -1,0 +1,5 @@
+target
+gateway
+node_modules
+.git
+.env
