@@ -36,3 +36,29 @@ jobs:
         run: npm ci
       - name: Build
         run: npm run build
+
+  # --- Docker build verification (no push) ---
+  docker:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - name: gateway
+            context: ./gateway
+            dockerfile: ./gateway/Dockerfile
+          - name: controller
+            context: .
+            dockerfile: ./crates/controller/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
