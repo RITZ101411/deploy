@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: deploy-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gateway
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: ghcr.io/ritz101411/deploy-gateway:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            # controller への内部通信先 (ClusterIP Service)
+            - name: CONTROLLER_URL
+              value: "http://controller.deploy-system.svc.cluster.local:3000"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: deploy-system
+spec:
+  type: ClusterIP
+  selector:
+    app: gateway
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+# Traefik IngressRoute: procla.dev への外部公開
+# TLS は Cloudflare で終端するため、ここでは web (HTTP) entrypoint を使う
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: gateway
+  namespace: deploy-system
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Host(`procla.dev`)
+      kind: Rule
+      services:
+        - name: gateway
+          port: 8080
