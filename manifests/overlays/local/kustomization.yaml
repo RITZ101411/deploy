@@ -1,0 +1,29 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+images:
+  - name: ghcr.io/ritz101411/deploy-controller
+    newName: deploy-controller
+    newTag: local
+  - name: ghcr.io/ritz101411/deploy-gateway
+    newName: deploy-gateway
+    newTag: local
+
+patches:
+  - target:
+      kind: Deployment
+      name: controller
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent
+  - target:
+      kind: Deployment
+      name: gateway
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/imagePullPolicy
+        value: IfNotPresent

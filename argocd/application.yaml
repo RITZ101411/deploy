@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: https://github.com/RITZ101411/deploy.git
     targetRevision: main
-    path: manifests
+    path: manifests/overlays/production
   destination:
     server: https://kubernetes.default.svc
     namespace: deploy-system
