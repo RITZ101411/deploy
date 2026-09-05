@@ -1,4 +1,5 @@
 mod app;
+mod k8s;
 mod routes;
 
 #[tokio::main]
@@ -10,9 +11,13 @@ async fn main() {
         )
         .init();
 
-    let app = app::create();
+    let client = kube::Client::try_default()
+        .await
+        .expect("failed to create kube client");
 
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:3000")
+    let app = app::create(client);
+
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
         .await
         .unwrap();
 
